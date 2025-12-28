@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 Batch Scanner</h1>
+            <div id="scanner-status" class="status-info">
+                <span id="scanner-info">Checking for scanners...</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Settings Panel -->
+            <aside class="settings-panel">
+                <h2>Settings</h2>
+                
+                <div class="setting-group">
+                    <label for="resolution">Resolution (DPI)</label>
+                    <select id="resolution">
+                        <option value="150">150 DPI</option>
+                        <option value="300" selected>300 DPI</option>
+                        <option value="600">600 DPI</option>
+                        <option value="1200">1200 DPI</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label for="format">File Format</label>
+                    <select id="format">
+                        <option value="jpeg" selected>JPEG</option>
+                        <option value="png">PNG</option>
+                        <option value="tiff">TIFF</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label for="page_size">Page Size</label>
+                    <select id="page_size">
+                        <option value="A4" selected>A4 (210 × 297 mm)</option>
+                        <option value="Letter">Letter (8.5 × 11 in)</option>
+                        <option value="Legal">Legal (8.5 × 14 in)</option>
+                        <option value="A3">A3 (297 × 420 mm)</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label for="output_folder">Output Folder</label>
+                    <input type="text" id="output_folder" value="{{ settings.output_folder }}">
+                </div>
+
+                <div class="setting-group">
+                    <label for="filename_prefix">Filename Prefix</label>
+                    <input type="text" id="filename_prefix" value="{{ settings.filename_prefix }}">
+                </div>
+
+                <div class="info-box">
+                    <h3>Keyboard Shortcuts</h3>
+                    <ul>
+                        <li><kbd>Enter</kbd> - Scan</li>
+                        <li><kbd>S</kbd> - Save current</li>
+                        <li><kbd>A</kbd> - Append (PDF mode)</li>
+                        <li><kbd>D</kbd> - Discard</li>
+                    </ul>
+                </div>
+
+                <div id="pdf-info" class="pdf-info" style="display: none;">
+                    <h3>PDF Pages</h3>
+                    <p>Pages in current PDF: <span id="pdf-page-count">0</span></p>
+                </div>
+            </aside>
+
+            <!-- Preview and Control Panel -->
+            <main class="preview-panel">
+                <div class="preview-container">
+                    <div id="preview-placeholder" class="preview-placeholder">
+                        <div class="placeholder-content">
+                            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                                <rect x="20" y="10" width="60" height="80" stroke-width="2" rx="2"/>
+                                <line x1="30" y1="25" x2="70" y2="25" stroke-width="2"/>
+                                <line x1="30" y1="35" x2="70" y2="35" stroke-width="2"/>
+                                <line x1="30" y1="45" x2="60" y2="45" stroke-width="2"/>
+                            </svg>
+                            <p>No scan yet</p>
+                            <p class="hint">Press Enter or click Scan to start</p>
+                        </div>
+                    </div>
+                    <img id="preview-image" class="preview-image" style="display: none;">
+                </div>
+
+                <div class="controls">
+                    <button id="scan-btn" class="btn btn-primary btn-large">
+                        🖨️ Scan (Enter)
+                    </button>
+                    
+                    <button id="save-btn" class="btn btn-success" disabled>
+                        💾 Save Current (S)
+                    </button>
+                    
+                    <button id="append-btn" class="btn btn-info" style="display: none;">
+                        ➕ Append Page (A)
+                    </button>
+                    
+                    <button id="discard-btn" class="btn btn-danger" disabled>
+                        🗑️ Discard All (D)
+                    </button>
+                </div>
+
+                <div id="status-message" class="status-message"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
