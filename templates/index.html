@@ -10,9 +10,6 @@
     <div class="container">
         <header>
             <h1>📄 Batch Scanner</h1>
-            <div id="scanner-status" class="status-info">
-                <span id="scanner-info">Checking for scanners...</span>
-            </div>
         </header>
 
         <div class="main-content">
@@ -74,6 +71,15 @@
                     <h3>PDF Pages</h3>
                     <p>Pages in current PDF: <span id="pdf-page-count">0</span></p>
                 </div>
+
+                <div class="info-box">
+                    <h3>Status</h3>
+                    <div id="scanner-status" class="status-info">
+                        <span id="scanner-info">Checking for scanners...</span>
+                    </div>
+
+                    <div id="status-message" class="status-message"></div>
+                </div>
             </aside>
 
             <!-- Preview and Control Panel -->
@@ -111,8 +117,6 @@
                         🗑️ Discard All (D)
                     </button>
                 </div>
-
-                <div id="status-message" class="status-message"></div>
             </main>
         </div>
     </div>

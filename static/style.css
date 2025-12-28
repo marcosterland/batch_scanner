@@ -5,33 +5,43 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 20px;
 }
 
 .container {
+    width: 100%;
     max-width: 1400px;
-    margin: 0 auto;
+    height: calc(100vh - 40px);
     background: white;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header */
 header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 30px;
+    padding: 20px 30px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+    font-size: 2rem;
     font-weight: 700;
 }
 
@@ -56,25 +66,26 @@ header h1 {
     display: grid;
     grid-template-columns: 350px 1fr;
     gap: 0;
-    min-height: calc(100vh - 200px);
+    flex: 1;
+    overflow: hidden;
 }
 
 /* Settings Panel */
 .settings-panel {
     background: #f8fafc;
     border-right: 1px solid #e2e8f0;
-    padding: 30px;
+    padding: 20px;
     overflow-y: auto;
 }
 
 .settings-panel h2 {
     color: #1e293b;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
 }
 
 .setting-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .setting-group label {
@@ -106,14 +117,14 @@ header h1 {
     background: white;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
-    padding: 15px;
-    margin-top: 30px;
+    padding: 12px;
+    margin-top: 15px;
 }
 
 .info-box h3 {
     color: #1e293b;
-    font-size: 1.1rem;
-    margin-bottom: 12px;
+    font-size: 1rem;
+    margin-bottom: 8px;
 }
 
 .info-box ul {
@@ -121,9 +132,9 @@ header h1 {
 }
 
 .info-box li {
-    padding: 6px 0;
+    padding: 4px 0;
     color: #475569;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .info-box kbd {
@@ -141,14 +152,14 @@ header h1 {
     background: #dbeafe;
     border: 2px solid #3b82f6;
     border-radius: 8px;
-    padding: 15px;
-    margin-top: 20px;
+    padding: 12px;
+    margin-top: 15px;
 }
 
 .pdf-info h3 {
     color: #1e40af;
-    font-size: 1.1rem;
-    margin-bottom: 8px;
+    font-size: 1rem;
+    margin-bottom: 6px;
 }
 
 .pdf-info p {
@@ -163,9 +174,10 @@ header h1 {
 
 /* Preview Panel */
 .preview-panel {
-    padding: 30px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .preview-container {
@@ -176,9 +188,9 @@ header h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 500px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     position: relative;
+    overflow: hidden;
 }
 
 .preview-placeholder {
@@ -215,9 +227,9 @@ header h1 {
 /* Controls */
 .controls {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .btn {
@@ -278,11 +290,13 @@ header h1 {
 
 /* Status Message */
 .status-message {
-    padding: 15px 20px;
+    padding: 10px 15px;
     border-radius: 8px;
     font-weight: 500;
+    font-size: 0.9rem;
     display: none;
     animation: slideIn 0.3s ease;
+    margin-top: 10px;
 }
 
 @keyframes slideIn {
@@ -318,11 +332,13 @@ header h1 {
 @media (max-width: 1024px) {
     .main-content {
         grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
     }
     
     .settings-panel {
         border-right: none;
         border-bottom: 1px solid #e2e8f0;
+        max-height: 40vh;
     }
 }
 
@@ -331,13 +347,21 @@ header h1 {
         padding: 10px;
     }
     
+    .container {
+        height: calc(100vh - 20px);
+    }
+    
+    header {
+        padding: 15px 20px;
+    }
+    
     header h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
     }
     
     .settings-panel,
     .preview-panel {
-        padding: 20px;
+        padding: 15px;
     }
     
     .controls {
