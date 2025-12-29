@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from flask import Flask, render_template, request, jsonify, send_file, Response
 from PIL import Image
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 import img2pdf
 
 app = Flask(__name__)
@@ -55,7 +55,7 @@ class ScanSettings(BaseModel):
     filename_prefix: str = Field(default="scan", description="Filename prefix")
     page_size: str = Field(default="A4", description="Page size")
 
-    @validator("format")
+    @field_validator("format")
     def validate_format(cls, v: str) -> str:
         """Validate and normalize file format.
 
@@ -73,7 +73,7 @@ class ScanSettings(BaseModel):
             raise ValueError(f"Format must be one of {allowed}")
         return "jpeg" if v.lower() == "jpg" else v.lower()
 
-    @validator("page_size")
+    @field_validator("page_size")
     def validate_page_size(cls, v: str) -> str:
         """Validate page size.
 
@@ -86,7 +86,7 @@ class ScanSettings(BaseModel):
         Raises:
             ValueError: If page size is not supported.
         """
-        allowed = ["A4", "Letter", "Legal", "A3"]
+        allowed = ["A4", "Letter", "Legal", "A3", "A5"]
         if v not in allowed:
             raise ValueError(f"Page size must be one of {allowed}")
         return v
@@ -162,7 +162,7 @@ def get_page_size_args(page_size: str) -> List[str]:
     """Get scanimage page size arguments.
 
     Args:
-        page_size: Page size identifier (A4, Letter, Legal, A3).
+        page_size: Page size identifier (A4, Letter, Legal, A3, A5).
 
     Returns:
         List of command-line arguments for scanimage, or empty list if unknown.
@@ -178,6 +178,7 @@ def get_page_size_args(page_size: str) -> List[str]:
         "Letter": ["-x", "215.9", "-y", "279.4"],
         "Legal": ["-x", "215.9", "-y", "355.6"],
         "A3": ["-x", "297", "-y", "420"],
+        "A5": ["-x", "148", "-y", "210"],
     }
     return sizes.get(page_size, [])
 
@@ -267,6 +268,68 @@ def convert_image(input_path: str, output_format: str = "jpeg") -> str:
     img.close()
 
     return temp_file.name
+
+
+def trim_bottom_whitespace(image_path: str) -> str:
+    """Trim white space from the bottom of an image.
+
+    Args:
+        image_path: Path to the image file to trim.
+
+    Returns:
+        Path to the trimmed image file (same as input, modified in place).
+
+    Examples:
+        >>> path = trim_bottom_whitespace('/tmp/scan.jpg')
+        >>> os.path.exists(path)
+        True
+    """
+    img = Image.open(image_path)
+
+    # Convert to RGB if needed for consistent processing
+    if img.mode not in ["RGB", "L"]:
+        img = img.convert("RGB")
+
+    # Get image data as array
+    pixels = img.load()
+    width, height = img.size
+
+    # Define threshold for "white" (allowing slight variations)
+    WHITE_THRESHOLD = 250
+
+    # Scan from bottom up to find last non-white row
+    last_content_row = height - 1
+
+    for y in range(height - 1, -1, -1):
+        is_white_row = True
+
+        # Check if entire row is white
+        for x in range(width):
+            pixel = pixels[x, y]
+
+            # Handle grayscale vs RGB
+            if isinstance(pixel, int):
+                if pixel < WHITE_THRESHOLD:
+                    is_white_row = False
+                    break
+            else:
+                # RGB/RGBA - check all channels
+                if any(channel < WHITE_THRESHOLD for channel in pixel[:3]):
+                    is_white_row = False
+                    break
+
+        if not is_white_row:
+            last_content_row = y
+            break
+
+    # Crop if we found white space (leave at least 10px margin or full image)
+    if last_content_row < height - 10:
+        cropped = img.crop((0, 0, width, last_content_row + 1))
+        cropped.save(image_path)
+        cropped.close()
+
+    img.close()
+    return image_path
 
 
 def cleanup_old_scans() -> None:
@@ -438,7 +501,7 @@ def index() -> str:
     Returns:
         Rendered HTML template with default settings.
     """
-    return render_template("index.html", settings=default_settings.dict())
+    return render_template("index.html", settings=default_settings.model_dump())
 
 
 @app.route("/api/scan", methods=["POST"])
@@ -448,6 +511,7 @@ def scan() -> Tuple[Response, int]:
     Expects JSON request body with:
         - resolution (int, optional): DPI resolution, defaults to 300
         - page_size (str, optional): Page size, defaults to 'A4'
+        - auto_trim (bool, optional): Auto-trim white space from bottom, defaults to False
 
     Returns:
         JSON response containing:
@@ -457,12 +521,13 @@ def scan() -> Tuple[Response, int]:
         Or error response with 500 status code.
 
     Examples:
-        >>> # POST /api/scan with {"resolution": 300, "page_size": "A4"}
+        >>> # POST /api/scan with {"resolution": 300, "page_size": "A4", "auto_trim": true}
         >>> # Returns: {"success": true, "scan_id": "...", "preview_url": "..."}
     """
     data = request.json
     resolution = int(data.get("resolution", 300))
     page_size = data.get("page_size", "A4")
+    auto_trim = bool(data.get("auto_trim", False))
 
     try:
         # Perform the scan
@@ -474,6 +539,10 @@ def scan() -> Tuple[Response, int]:
 
         # Remove the PNM file
         os.remove(scanned_pnm)
+
+        # Apply auto-trim if enabled
+        if auto_trim:
+            trim_bottom_whitespace(converted_image)
 
         # Store scan with unique ID
         scan_id = store_scan(converted_image)
@@ -590,17 +659,6 @@ def save() -> Tuple[Response, int]:
                 "filename": os.path.basename(saved_path),
             }
         ), 200
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-        return jsonify(
-            {
-                "success": True,
-                "saved_path": saved_path,
-                "filename": os.path.basename(saved_path),
-            }
-        )
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

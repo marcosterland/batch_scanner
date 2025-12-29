@@ -101,7 +101,8 @@ async function performScan() {
     
     const settings = {
         resolution: parseInt(document.getElementById('resolution').value),
-        page_size: document.getElementById('page_size').value
+        page_size: document.getElementById('page_size').value,
+        auto_trim: document.getElementById('auto_trim').checked
     };
     
     try {
