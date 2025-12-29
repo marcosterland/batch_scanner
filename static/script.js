@@ -95,6 +95,13 @@ function updatePdfModeUI() {
 async function performScan() {
     if (isScanning) return;
     
+    // If there are existing scans, save them first
+    if (scanIds.length > 0) {
+        await saveCurrent();
+        // If save failed, scanIds will still have items - don't proceed with scan
+        if (scanIds.length > 0) return;
+    }
+    
     isScanning = true;
     updateButtonStates();
     showStatus('Scanning...', 'info');
